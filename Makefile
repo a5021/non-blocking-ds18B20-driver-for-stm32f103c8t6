@@ -31,8 +31,8 @@ endif
 ASM = $(CMSIS_DEVICE_DIR)/startup_stm32f103xb.s
 LDS = STM32F103XB_FLASH.ld
 MCU = -mcpu=cortex-m3 -mthumb
-DEF = -DSTM32F103xB
-INC = -I. -Iinc -I$(CMSIS_CORE_DIR) -I$(CMSIS_DEVICE_DIR)
+DEF = -DSTM32F103xB -DOW_HAL_TARGET_F1
+INC = -I. -Iinc -Iport/stm32f1 -I$(CMSIS_CORE_DIR) -I$(CMSIS_DEVICE_DIR)
 
 # Per-app USART1 TX ring buffer size (power of two), overrides the app.h default
 UART_TX_SIZE_demo  = 128
@@ -352,10 +352,10 @@ TEST_SRC  = $(TEST_DIR)/test_main.c \
             $(TEST_MOCK)/ds18b20_test_access.c
 # Pointer<->register casts (driver targets a 32-bit Cortex-M3) are expected
 # on a 64-bit host; suppress the size warnings.
-TEST_FLAG = -DHOST_BUILD -DDS18B20_TEST_HARNESS -Wall -Wextra -Wswitch-enum \
+TEST_FLAG = -DHOST_BUILD -DDS18B20_TEST_HARNESS -DOW_HAL_TARGET_F1 -Wall -Wextra -Wswitch-enum \
             -Wno-unused-parameter -Wno-pointer-to-int-cast -Wno-int-to-pointer-cast \
             $(if $(COVERAGE),--coverage,)
-TEST_INC  = -Iinc -I$(TEST_MOCK)
+TEST_INC  = -Iinc -Iport/stm32f1 -I$(TEST_MOCK)
 
 .PHONY: test
 test: $(TEST_OUT)/ds18b20_test.exe
