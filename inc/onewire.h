@@ -29,8 +29,15 @@
 #define ONEWIRE_ZERO_PULSE 60
 /** @brief Guard band between slots in microseconds (bus rise time + DMA latency) */
 #define ONEWIRE_GUARD_BAND 5
-/** @brief Pulse threshold separating short ('1') from long ('0') slots in microseconds */
-#define ONEWIRE_SHORT_PULSE_MAX 10
+/** @brief Pulse threshold separating short ('1') from long ('0') slots in microseconds
+ *  @note  The captured rising-edge timestamp of a '1' slot is the master release
+ *         (5µs) plus the open-drain bus rise time and the timer input-filter lag:
+ *         ~8µs at 72MHz (fDTS=72MHz, IC2F lag ~0.1µs) and ~12µs at 8MHz HSI
+ *         (IC2F lag ~1µs plus slower edge sampling). A '0' slot is released by
+ *         the device no earlier than 15µs after slot start (spec), captured at
+ *         >=21µs worst case (>=32µs measured). 16µs keeps >=4µs margin to the
+ *         shortest '1' and >=5µs to the longest legal '0' across both clocks. */
+#define ONEWIRE_SHORT_PULSE_MAX 16
 
 /** @} */
 

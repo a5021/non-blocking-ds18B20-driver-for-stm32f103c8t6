@@ -11,6 +11,7 @@
  * ============================================================ */
 
 #include "ds18b20.h"
+#include "onewire.h"
 #include "ds18b20_test_access.h"
 #include "stm32f1xx.h"
 #include "unity.h"
@@ -50,11 +51,11 @@ void test_scratchpad_all_long_pulses_produce_0x00(void) {
 }
 
 /*-------------------------------------------------------------
- *  Test: Boundary value - pulse = 10µs is logic 1
+ *  Test: Boundary value - pulse = ONEWIRE_SHORT_PULSE_MAX is logic 1
  * -----------------------------------------------------------*/
 void test_scratchpad_pulse_10_is_logic_1(void) {
-    /* Set first pulse to exactly 10µs */
-    ds18b20_test_set_pulse(0, 10);
+    /* Set first pulse to exactly the short-pulse threshold */
+    ds18b20_test_set_pulse(0, ONEWIRE_SHORT_PULSE_MAX);
     /* Rest are 60µs (logic 0) */
     for (int i = 1; i < 72; i++) {
         ds18b20_test_set_pulse(i, 60);
@@ -71,11 +72,11 @@ void test_scratchpad_pulse_10_is_logic_1(void) {
 }
 
 /*-------------------------------------------------------------
- *  Test: Boundary value - pulse = 11µs is logic 0
+ *  Test: Boundary value - pulse = ONEWIRE_SHORT_PULSE_MAX + 1 is logic 0
  * -----------------------------------------------------------*/
 void test_scratchpad_pulse_11_is_logic_0(void) {
-    /* Set first pulse to 11µs (just over threshold) */
-    ds18b20_test_set_pulse(0, 11);
+    /* Set first pulse to just over the short-pulse threshold */
+    ds18b20_test_set_pulse(0, ONEWIRE_SHORT_PULSE_MAX + 1);
     /* Rest are 5µs (logic 1) */
     for (int i = 1; i < 72; i++) {
         ds18b20_test_set_pulse(i, 5);
