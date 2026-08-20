@@ -2,7 +2,7 @@
  *  test_timing.c - Timing Register Regression Tests
  *
  *  Verifies the actual register values each bus operation programs
- *  into TIM1 (ARR/RCR/CCR1/CCR4) against the DS18B20 timing spec.
+ *  into TIM1 (ARR/RCR/CCR1/CCR3) against the DS18B20 timing spec.
  *  Unlike a constant re-check, this locks the real driver output.
  * ============================================================ */
 
@@ -36,8 +36,8 @@ void test_timing_command_programs_slot_period(void) {
     TEST_ASSERT_EQUAL_UINT16(70, (uint16_t)mock_tim1.ARR);
     /* RCR = slots - 1 */
     TEST_ASSERT_EQUAL_UINT32(15, mock_tim1.RCR);
-    /* CCR4 triggers the DMA reload at ONE_PULSE + ZERO_PULSE = 65µs */
-    TEST_ASSERT_EQUAL_UINT32(65, mock_tim1.CCR4);
+    /* CC3 triggers the DMA reload at ONE_PULSE + ZERO_PULSE = 65µs */
+    TEST_ASSERT_EQUAL_UINT32(65, mock_tim1.CCR3);
 }
 
 void test_timing_read_programs_72_slots(void) {

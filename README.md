@@ -461,7 +461,7 @@ This driver uses an advanced technique that combines multiple hardware features:
 
 1. Timer-Driven Sequences: TIM1 is configured in One-Pulse Mode (OPM). Each state machine step configures the timer for a specific operation (reset, write byte, read byte, wait) and starts it.
 2. DMA for Data Transfer: DMA is used in two key ways:
-   - Transmit (DMA1_Channel4): Feeds a pre-calculated sequence of Compare Register (CCR) values to TIM1->CCR1 to automatically generate the precise waveform for writing commands or bits.
+   - Transmit (DMA1_Channel6): Feeds a pre-calculated sequence of Compare Register (CCR) values to TIM1->CCR1 to automatically generate the precise waveform for writing commands or bits.
    - Capture (DMA1_Channel3): Automatically stores values from the TIM1->CCR2 capture register into memory to record pulse timings during read operations or presence detection.
 3. Update Event as Completion Signal: The core polling mechanism checks the Timer Update Flag (TIM1->SR UIF). This flag is set when the timer completes its one-pulse countdown, signaling that the autonomous hardware operation (e.g., sending a reset pulse, waiting 750ms) is finished.
 4. True Zero-ISR Overhead: The ds18b20_poll() function checks this flag. When set, it clears the flag and advances the state machine to the next step. This makes the entire driver event-driven by hardware completion signals without using interrupts.
@@ -506,7 +506,7 @@ complete `onewire_*` surface.
 
 ### Hardware Resources Used
 
-- TIM1 & Channels 1, 2, 4: The core timer resources.
+- TIM1 & Channels 1, 2, 3: The core timer resources.
   - CH1 (PWM Mode 2, Output Compare): Configured in PWM Mode 2, driving PA8 as the 1-Wire output on an active-low bus.
      - Each 1-Wire bit time slot is implemented as a single PWM period
        with a low (active) portion encoding the bit:
@@ -517,12 +517,12 @@ complete `onewire_*` surface.
        due to bus rise time and DMA latency.
     - Reset (~480µs) is generated as an extended low period (active-low) within a ~960µs slot.
   - CH2 (Input Capture, Indirect mode): Shares the same PA8 pin internally. Used to capture presence pulses and read-slot timings after CH1 releases the bus to idle-high; DMA transfers CCR2 capture values to memory.
-  - CH4: Used as a DMA trigger, feeding CCR1 duty cycles (for CH1 output) and facilitating capture operations.
+  - CH3: Used as a DMA trigger, feeding CCR1 duty cycles (for CH1 output) and facilitating capture operations.
 - RCR (Repetition Counter Register): Key to the state machine operation. Instead of generating an Update Event on every period, RCR controls how many timer repetitions occur before UIF is set.
   - Example: RCR=15 → the timer generates 16 PWM slots (bits) via DMA, then asserts UIF once at the end, signaling software to proceed.
   - This allows grouping a full command (two bytes), the entire 72-bit read, or long delays into single hardware-driven transactions, freeing the CPU until completion.
 - DMA1_Channel3: Peripheral-to-memory transfers from TIM1->CCR2 (captured timings).
-- DMA1_Channel4: Memory-to-peripheral transfers to TIM1->CCR1 (PWM duty cycles).
+- DMA1_Channel6: Memory-to-peripheral transfers to TIM1->CCR1 (PWM duty cycles).
 - GPIO Pin: PA8 configured in alternate function open-drain; CH1 output and CH2 capture are multiplexed onto this single pin.
 
 ### State Machine Flow (hardware-timed; polled on UIF)

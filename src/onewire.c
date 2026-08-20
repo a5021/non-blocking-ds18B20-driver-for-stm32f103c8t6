@@ -39,7 +39,7 @@
 static volatile uint16_t search_edge3[3];
 
 /** @brief Read pulse durations reloaded by DMA for the merged search operation
- *        (channel 4 feeds CCR1 from this). Entry 0 is loaded at slot 1's CC4
+ *        (channel 3 feeds CCR1 from this). Entry 0 is loaded at slot 1's CC3
  *        event and kicks read slots 2-3, entry 1 re-arms the slot-3 kick, and
  *        the trailing 0 is written during slot 3 so the one-pulse timer stops
  *        with the line released to idle HIGH (hardware bus release). */

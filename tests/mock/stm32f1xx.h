@@ -62,12 +62,12 @@ typedef struct {
 /* Instances: pointers so macro.h's (*TIM1), (*DMA1_Channel3), etc. work. */
 extern TIM1_TypeDef mock_tim1;
 extern DMA1_Channel_TypeDef mock_dma1_ch3;
-extern DMA1_Channel_TypeDef mock_dma1_ch4;
+extern DMA1_Channel_TypeDef mock_dma1_ch6;
 extern GPIO_TypeDef mock_gpioa;
 extern RCC_TypeDef mock_rcc;
 #define TIM1 (&mock_tim1)
 #define DMA1_Channel3 (&mock_dma1_ch3)
-#define DMA1_Channel4 (&mock_dma1_ch4)
+#define DMA1_Channel6 (&mock_dma1_ch6)
 #define GPIOA (&mock_gpioa)
 #define RCC (&mock_rcc)
 
@@ -94,7 +94,7 @@ extern RCC_TypeDef mock_rcc;
 #define TIM_CCER_CC1E 0x00000001u
 #define TIM_CCER_CC2E 0x00000010u
 #define TIM_DIER_CC2DE 0x00000400u
-#define TIM_DIER_CC4DE 0x00001000u
+#define TIM_DIER_CC3DE 0x00000800u
 #define DMA_CCR_EN 0x00000001u
 #define DMA_CCR_DIR 0x00000010u
 #define DMA_CCR_MINC 0x00000080u

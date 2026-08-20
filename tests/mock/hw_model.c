@@ -4,7 +4,7 @@
 
 TIM1_TypeDef mock_tim1;
 DMA1_Channel_TypeDef mock_dma1_ch3;
-DMA1_Channel_TypeDef mock_dma1_ch4;
+DMA1_Channel_TypeDef mock_dma1_ch6;
 GPIO_TypeDef mock_gpioa;
 RCC_TypeDef mock_rcc;
 
@@ -39,7 +39,7 @@ static void* hw_resolve(uint32_t lo) {
 void hw_reset_all(void) {
     mock_tim1 = (TIM1_TypeDef){0};
     mock_dma1_ch3 = (DMA1_Channel_TypeDef){0};
-    mock_dma1_ch4 = (DMA1_Channel_TypeDef){0};
+    mock_dma1_ch6 = (DMA1_Channel_TypeDef){0};
     mock_gpioa = (GPIO_TypeDef){0};
     mock_rcc = (RCC_TypeDef){0};
     tim_shadow_ccr1 = 0;
@@ -63,24 +63,24 @@ uint16_t hw_effective_ccr1(void) {
 }
 
 /* Resolved buffer pointers for the current operation (set by hw_run_until_uif). */
-static uint8_t* d14_cur; /* channel-4 CCR1 feed source (memory read) */
+static uint8_t* d16_cur; /* channel-6 CCR1 feed source (memory read) */
 static uint8_t* d13_cur; /* channel-3 capture destination (memory write) */
 
-/* One D14 transfer: memory -> CCR1 (16-bit peripheral, 8-bit memory). */
-static void dma14_transfer(void) {
-    DMA1_Channel_TypeDef* d = &mock_dma1_ch4;
+/* One D16 transfer: memory -> CCR1 (16-bit peripheral, 8-bit memory). */
+static void dma16_transfer(void) {
+    DMA1_Channel_TypeDef* d = &mock_dma1_ch6;
     if (!(d->CCR & DMA_CCR_EN) || d->CNDTR == 0) {
         return;
     }
-    if (d14_cur == NULL) {
-        fprintf(stderr, "hw_model: unresolved channel-4 source address\n");
+    if (d16_cur == NULL) {
+        fprintf(stderr, "hw_model: unresolved channel-6 source address\n");
         d->CNDTR = 0;
         d->CCR &= ~DMA_CCR_EN;
         return;
     }
-    uint16_t val = *d14_cur;
+    uint16_t val = *d16_cur;
     mock_tim1.CCR1 = val;
-    d14_cur += 1; /* MSIZE 8-bit */
+    d16_cur += 1; /* MSIZE 8-bit */
     d->CNDTR--;
     if (d->CNDTR == 0) {
         d->CCR &= ~DMA_CCR_EN;
@@ -124,7 +124,7 @@ uint8_t hw_run_until_uif(uint32_t max_slots) {
     feed_log.count = 0;
     op_capture_count = 0;
     /* Resolve the DMA buffer addresses exactly as the driver stored them. */
-    d14_cur = (uint8_t*)hw_resolve((uint32_t)mock_dma1_ch4.CMAR);
+    d16_cur = (uint8_t*)hw_resolve((uint32_t)mock_dma1_ch6.CMAR);
     d13_cur = (uint8_t*)hw_resolve((uint32_t)mock_dma1_ch3.CMAR);
     uint32_t slots = (uint32_t)(t->RCR & 0xFFu) + 1u;
     if (slots > max_slots) {
@@ -139,10 +139,10 @@ uint8_t hw_run_until_uif(uint32_t max_slots) {
         cps = (n + s - 1u) / s;
     }
     for (uint32_t i = 0; i < slots; i++) {
-        /* CC4 compare event -> channel-4 DMA feeds CCR1. Modeled at slot start
+        /* CC3 compare event -> channel-6 DMA feeds CCR1. Modeled at slot start
          * for simplicity; the ordering does not affect the tested invariants. */
-        if (t->DIER & TIM_DIER_CC4DE) {
-            dma14_transfer();
+        if (t->DIER & TIM_DIER_CC3DE) {
+            dma16_transfer();
         }
         /* CC2 capture -> capture value + channel-3 DMA to memory. */
         if (t->DIER & TIM_DIER_CC2DE) {

@@ -238,7 +238,7 @@ void test_search_no_device_no_presence(void) {
 
 /*-------------------------------------------------------------
  *  write_then_read arms the merged op: 3-slot timer pass, PWM
- *  WITHOUT OC1PE (so the CCR4 DMA reload is immediate), capture
+ *  WITHOUT OC1PE (so the CC3 DMA reload is immediate), capture
  *  DMA for 3 edges and reload DMA feeding {ONE,ONE,0}.
  * -----------------------------------------------------------*/
 void test_write_then_read_configures_registers(void) {
@@ -247,17 +247,17 @@ void test_write_then_read_configures_registers(void) {
 
     TEST_ASSERT_EQUAL_UINT32(2, mock_tim1.RCR);
     TEST_ASSERT_EQUAL_UINT32(ZERO, mock_tim1.CCR1); /* write bit = 0 */
-    TEST_ASSERT_EQUAL_UINT32(ONE + ZERO, mock_tim1.CCR4);
+    TEST_ASSERT_EQUAL_UINT32(ONE + ZERO, mock_tim1.CCR3);
 
     TEST_ASSERT_BITS_LOW(TIM_CCMR1_OC1PE, mock_tim1.CCMR1);
-    TEST_ASSERT_BITS_HIGH(TIM_DIER_CC2DE | TIM_DIER_CC4DE, mock_tim1.DIER);
+    TEST_ASSERT_BITS_HIGH(TIM_DIER_CC2DE | TIM_DIER_CC3DE, mock_tim1.DIER);
     TEST_ASSERT_BITS_HIGH(TIM_CCER_CC1E | TIM_CCER_CC2E, mock_tim1.CCER);
     TEST_ASSERT_BITS_HIGH(TIM_CR1_OPM | TIM_CR1_CEN, mock_tim1.CR1);
 
     TEST_ASSERT_EQUAL_UINT32(3, mock_dma1_ch3.CNDTR);
-    TEST_ASSERT_EQUAL_UINT32(3, mock_dma1_ch4.CNDTR);
+    TEST_ASSERT_EQUAL_UINT32(3, mock_dma1_ch6.CNDTR);
     TEST_ASSERT_BITS_HIGH(DMA_CCR_EN | DMA_CCR_MINC, mock_dma1_ch3.CCR);
-    TEST_ASSERT_BITS_HIGH(DMA_CCR_EN | DMA_CCR_DIR | DMA_CCR_MINC, mock_dma1_ch4.CCR);
+    TEST_ASSERT_BITS_HIGH(DMA_CCR_EN | DMA_CCR_DIR | DMA_CCR_MINC, mock_dma1_ch6.CCR);
 }
 
 /*-------------------------------------------------------------

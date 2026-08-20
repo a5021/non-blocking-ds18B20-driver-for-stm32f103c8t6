@@ -1,14 +1,18 @@
 /**
  * @file ow_hal_f1.h
- * @brief STM32F1 backend: TIM1 (advanced) + DMA1 (channels 3/4) + PA8
+ * @brief STM32F1 backend: TIM1 (advanced) + DMA1 (channels 3/6) + PA8
  *
  * Header-only static inline implementation of the ow_hal_* interface for the
  * STM32F103. The 1-Wire bus runs on PA8 (TIM1_CH1 PWM output in open-drain
  * alternate function); CH2 captures in indirect mode on the same pin and DMA1
- * channel 3 moves CCR2 captures to memory, while channel 4 feeds CCR1 from a
- * precomputed pulse buffer on the CC4 compare event. TIM1 runs in one-pulse
- * mode (OPM) with the repetition counter (RCR) batching N slots into a single
- * update event (UIF).
+ * channel 3 moves CCR2 captures to memory, while channel 3 feeds CCR1 from a
+ * precomputed pulse buffer on the CC3 compare event (DMA1 channel 6). TIM1
+ * runs in one-pulse mode (OPM) with the repetition counter (RCR) batching N
+ * slots into a single update event (UIF).
+ *
+ * The CCR1 feed uses channel 3 (CC3DE) instead of channel 4 so the feed logic
+ * is identical across the STM32F1 (DMA1 channel 6) and STM32F0 (DMA1 channel
+ * 5, the only TIM1 channel with a DMA request that can reload CCR1) backends.
  */
 
 #ifndef OW_HAL_F1_H
@@ -104,7 +108,7 @@ __STATIC_FORCEINLINE void ow_hal_capture(volatile void* dst, uint16_t count, uin
  * @param[in] cmd Pointer to command sequence in pulse duration format
  * @param[in] slots Number of bit slots (bits) to transmit
  * @note The buffer must hold `slots + 1` entries and the entry at index
- *       `slots` must be 0: the final CC4-triggered DMA transfer feeds that
+ *       `slots` must be 0: the final CC3-triggered DMA transfer feeds that
  *       trailing 0 into CCR1 during the last slot, so the one-pulse timer
  *       stops with the line already released to idle HIGH (hardware bus
  *       release — no software CCR1 write needed afterwards).
@@ -113,16 +117,16 @@ __STATIC_FORCEINLINE void ow_hal_feed(const uint8_t* cmd, uint16_t slots) {
     T1.RCR = slots - 1;
     T1.ARR = ONEWIRE_ONE_PULSE + ONEWIRE_ZERO_PULSE + ONEWIRE_GUARD_BAND;
     T1.CCR1 = cmd[0];
-    T1.CCR4 = ONEWIRE_ONE_PULSE + ONEWIRE_ZERO_PULSE;
+    T1.CCR3 = ONEWIRE_ONE_PULSE + ONEWIRE_ZERO_PULSE;
     T1.CCMR1 = TIM_CCMR1(OC1M_0, OC1M_1, OC1M_2);
     T1.CCER = TIM_CCER(CC1E);
-    T1.DIER = TIM_DIER(CC4DE);
+    T1.DIER = TIM_DIER(CC3DE);
     ow_hal_update_event();
-    D14.CCR = 0;
-    D14.CPAR = (uint32_t)&T1.CCR1;
-    D14.CMAR = (uint32_t)&cmd[1];
-    D14.CNDTR = slots; /* Feed slots 2..N, then the trailing 0 (bus release) */
-    D14.CCR = DMA_CCR(DIR, MINC, PSIZE_0, EN);
+    D16.CCR = 0;
+    D16.CPAR = (uint32_t)&T1.CCR1;
+    D16.CMAR = (uint32_t)&cmd[1];
+    D16.CNDTR = slots; /* Feed slots 2..N, then the trailing 0 (bus release) */
+    D16.CCR = DMA_CCR(DIR, MINC, PSIZE_0, EN);
     T1.CR1 = TIM_CR1(OPM, CEN);
 }
 
@@ -219,13 +223,13 @@ __STATIC_FORCEINLINE void ow_hal_write_then_read(uint8_t bit, volatile uint16_t*
      * bus is low, so the open-drain RC rise can never be mistaken for a slot
      * edge. */
     T1.CCR1 = write_pulse; /* Slot 1 write pulse encodes the direction bit */
-    T1.CCR4 = ONEWIRE_ONE_PULSE + ONEWIRE_ZERO_PULSE; /* End-of-slot reload trigger */
+    T1.CCR3 = ONEWIRE_ONE_PULSE + ONEWIRE_ZERO_PULSE; /* End-of-slot reload trigger */
     /* OC1 in PWM mode (no preload so the reload is immediate), CC2 capture armed */
     T1.CCMR1 = TIM_CCMR1(OC1M_0, OC1M_1, OC1M_2, CC2S_1, IC2F_0, IC2F_1, IC2F_2);
     T1.CCER = TIM_CCER(CC1E, CC2E); /* Enable both channels */
     /* Disconnect DMA requests while re-arming the channels, then re-connect
      * them only after the timer flags are clean and just before starting.
-     * (The end-of-slot CC4 compare event of the previous merged operation can
+     * (The end-of-slot CC3 compare event of the previous merged operation can
      * leave a pending request that fires the reload DMA immediately on re-arm,
      * overwriting the freshly written direction pulse in CCR1.) */
     T1.DIER = 0;
@@ -236,17 +240,17 @@ __STATIC_FORCEINLINE void ow_hal_write_then_read(uint8_t bit, volatile uint16_t*
     D13.CMAR = (uint32_t)edge3;
     D13.CNDTR = 3;
     D13.CCR = DMA_CCR(MINC, PSIZE_0, MSIZE_0, EN);
-    /* DMA Ch4: reload CCR1 with the read pulse for slots 2-3, then write the
+    /* DMA Ch6: reload CCR1 with the read pulse for slots 2-3, then write the
      * trailing 0 during slot 3 so the one-pulse timer stops with the line
      * released to idle HIGH (hardware bus release). */
-    D14.CCR = 0;
-    D14.CPAR = (uint32_t)&T1.CCR1;
-    D14.CMAR = (uint32_t)read_pulse;
-    D14.CNDTR = 3;
-    D14.CCR = DMA_CCR(DIR, MINC, PSIZE_0, EN);
+    D16.CCR = 0;
+    D16.CPAR = (uint32_t)&T1.CCR1;
+    D16.CMAR = (uint32_t)read_pulse;
+    D16.CNDTR = 3;
+    D16.CCR = DMA_CCR(DIR, MINC, PSIZE_0, EN);
     T1.SR = 0; /* Clear any pending capture/compare flags before enabling DMA requests */
-    T1.DIER = TIM_DIER(CC2DE, CC4DE); /* Capture + CCR1 reload via DMA */
-    T1.CCR1 = write_pulse; /* Re-arm the direction pulse (safe against a stale CC4 DMA reload) */
+    T1.DIER = TIM_DIER(CC2DE, CC3DE); /* Capture + CCR1 reload via DMA */
+    T1.CCR1 = write_pulse; /* Re-arm the direction pulse (safe against a stale CC3 DMA reload) */
     T1.CR1 = TIM_CR1(OPM, CEN);
 }
 
