@@ -138,7 +138,7 @@ int uart_write_hex(uint8_t b) {
 /**
  * @brief Configure system clock
  * @note F1: 72MHz via HSE+PLL (or skip for HSI 8MHz). F0: 48MHz via
- *       HSI/2+PLL x12 (F031 has no HSE), or skip for HSI 8MHz.
+ *       HSI/2+PLL x12 (F030x6 has no HSE), or skip for HSI 8MHz.
  */
 __STATIC_FORCEINLINE void configure_system_clock(void) {
 #if defined(OW_PORT_TARGET_F0)
@@ -190,7 +190,7 @@ __STATIC_FORCEINLINE void configure_system_clock(void) {
 /**
  * @brief Initialize microcontroller peripherals for UART communication and LED control
  * @note F1: USART1 TX on PA9 (AF push-pull), LED on PC13. F0: same PA9 UART
- *       via MODER/AFR, LED on PA4 (no GPIOC on F031).
+ *       via MODER/AFR, LED on PA4 (no GPIOC on F030x6).
  */
 __STATIC_FORCEINLINE void hardware_init(void) {
 #if defined(OW_PORT_TARGET_F0)

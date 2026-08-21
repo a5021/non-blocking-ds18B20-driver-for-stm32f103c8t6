@@ -1,8 +1,8 @@
 /*
- * Linker script for STM32F031x6 (32KB Flash, 4KB RAM)
+ * Linker script for STM32F030x6 (16KB Flash, 4KB RAM)
  *
  * Memory layout:
- *   FLASH (rx)  : 0x08000000,  32K
+ *   FLASH (rx)  : 0x08000000,  16K
  *   RAM   (xrw) : 0x20000000,   4K
  *
  * Provides symbols needed by the CMSIS startup code:
@@ -18,7 +18,7 @@ _Min_Stack_Size = 0x400;
 
 MEMORY
 {
-  FLASH (rx)  : ORIGIN = 0x08000000, LENGTH =  32K
+  FLASH (rx)  : ORIGIN = 0x08000000, LENGTH =  16K
   RAM   (xrw) : ORIGIN = 0x20000000, LENGTH =   4K
 }
 

@@ -23,7 +23,7 @@ CMSIS_DEVICE_DIR = CMSIS/device
 
 # Define the C source files, assembly source file, linker script, and preprocessor definitions
 # The diag app is a standalone bit-bang tool and does not link the driver.
-# OW_TARGET selects the MCU family: f1 (STM32F103xB, default) or f0 (STM32F031x6)
+# OW_TARGET selects the MCU family: f1 (STM32F103xB, default) or f0 (STM32F030x6)
 #   make                -> F1 firmware
 #   make OW_TARGET=f0   -> F0 firmware
 ifeq ($(OW_TARGET),f0)
@@ -32,10 +32,10 @@ SRC = $(CMSIS_DEVICE_DIR)/system_stm32f0xx.c src/$(APP).c src/app.c
 else
 SRC = $(CMSIS_DEVICE_DIR)/system_stm32f0xx.c src/$(APP).c src/onewire.c src/ds18b20.c src/app.c
 endif
-ASM = $(CMSIS_DEVICE_DIR)/startup_stm32f031x6.s
-LDS = STM32F031X6_FLASH.ld
+ASM = $(CMSIS_DEVICE_DIR)/startup_stm32f030x6.s
+LDS = STM32F030X6_FLASH.ld
 MCU = -mcpu=cortex-m0 -mthumb
-DEF = -DSTM32F031x6 -DOW_PORT_TARGET_F0
+DEF = -DSTM32F030x6 -DOW_PORT_TARGET_F0
 else
 ifneq ($(filter $(APP),diag),)
 SRC = $(CMSIS_DEVICE_DIR)/system_stm32f1xx.c src/$(APP).c src/app.c
@@ -171,10 +171,10 @@ EXTERNAL_DEPS = $(CMSIS_CORE_DIR)/core_cm0.h \
                 $(CMSIS_CORE_DIR)/cmsis_gcc.h \
                 $(CMSIS_CORE_DIR)/cmsis_version.h \
                 $(CMSIS_DEVICE_DIR)/stm32f0xx.h \
-                $(CMSIS_DEVICE_DIR)/stm32f031x6.h \
+                $(CMSIS_DEVICE_DIR)/stm32f030x6.h \
                 $(CMSIS_DEVICE_DIR)/system_stm32f0xx.h \
                 $(CMSIS_DEVICE_DIR)/system_stm32f0xx.c \
-                $(CMSIS_DEVICE_DIR)/startup_stm32f031x6.s
+                $(CMSIS_DEVICE_DIR)/startup_stm32f030x6.s
 else
 EXTERNAL_DEPS = $(CMSIS_CORE_DIR)/core_cm3.h \
                 $(CMSIS_CORE_DIR)/cmsis_compiler.h \
@@ -262,8 +262,8 @@ $(CMSIS_DEVICE_DIR)/startup_stm32f103xb.s: | $(CMSIS_DEVICE_DIR)
 $(CMSIS_DEVICE_DIR)/stm32f0xx.h: | $(CMSIS_DEVICE_DIR)
 	$(call download_file,$(F0_URL)/Include/stm32f0xx.h,$@)
 
-$(CMSIS_DEVICE_DIR)/stm32f031x6.h: | $(CMSIS_DEVICE_DIR)
-	$(call download_file,$(F0_URL)/Include/stm32f031x6.h,$@)
+$(CMSIS_DEVICE_DIR)/stm32f030x6.h: | $(CMSIS_DEVICE_DIR)
+	$(call download_file,$(F0_URL)/Include/stm32f030x6.h,$@)
 
 $(CMSIS_DEVICE_DIR)/system_stm32f0xx.h: | $(CMSIS_DEVICE_DIR)
 	$(call download_file,$(F0_URL)/Include/system_stm32f0xx.h,$@)
@@ -271,8 +271,8 @@ $(CMSIS_DEVICE_DIR)/system_stm32f0xx.h: | $(CMSIS_DEVICE_DIR)
 $(CMSIS_DEVICE_DIR)/system_stm32f0xx.c: | $(CMSIS_DEVICE_DIR)
 	$(call download_file,$(F0_URL)/Source/Templates/system_stm32f0xx.c,$@)
 
-$(CMSIS_DEVICE_DIR)/startup_stm32f031x6.s: | $(CMSIS_DEVICE_DIR)
-	$(call download_file,$(F0_URL)/Source/Templates/gcc/startup_stm32f031x6.s,$@)
+$(CMSIS_DEVICE_DIR)/startup_stm32f030x6.s: | $(CMSIS_DEVICE_DIR)
+	$(call download_file,$(F0_URL)/Source/Templates/gcc/startup_stm32f030x6.s,$@)
 
 # SVD file
 $(CMSIS_DEVICE_DIR)/STM32F103xx.svd: | $(CMSIS_DEVICE_DIR)
