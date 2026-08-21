@@ -35,7 +35,7 @@ endif
 ASM = $(CMSIS_DEVICE_DIR)/startup_stm32f031x6.s
 LDS = STM32F031X6_FLASH.ld
 MCU = -mcpu=cortex-m0 -mthumb
-DEF = -DSTM32F031x6 -DOW_HAL_TARGET_F0
+DEF = -DSTM32F031x6 -DOW_PORT_TARGET_F0
 else
 ifneq ($(filter $(APP),diag),)
 SRC = $(CMSIS_DEVICE_DIR)/system_stm32f1xx.c src/$(APP).c src/app.c
@@ -45,7 +45,7 @@ endif
 ASM = $(CMSIS_DEVICE_DIR)/startup_stm32f103xb.s
 LDS = STM32F103XB_FLASH.ld
 MCU = -mcpu=cortex-m3 -mthumb
-DEF = -DSTM32F103xB -DOW_HAL_TARGET_F1
+DEF = -DSTM32F103xB -DOW_PORT_TARGET_F1
 endif
 INC = -I. -Iinc -Iport/stm32f1 -Iport/stm32f0 -I$(CMSIS_CORE_DIR) -I$(CMSIS_DEVICE_DIR)
 
@@ -401,18 +401,18 @@ TEST_SRC  = $(TEST_DIR)/test_main.c \
 # on a 64-bit host; suppress the size warnings.
 # OW_TARGET=f0 runs the same suite against the STM32F0 backend mock.
 ifeq ($(OW_TARGET),f0)
-TEST_HAL_FLAG = -DOW_HAL_TARGET_F0
-TEST_HAL_INC = -Iport/stm32f0
+TEST_PORT_FLAG = -DOW_PORT_TARGET_F0
+TEST_PORT_INC = -Iport/stm32f0
 TEST_EXE = $(TEST_OUT)/ds18b20_test_f0.exe
 else
-TEST_HAL_FLAG = -DOW_HAL_TARGET_F1
-TEST_HAL_INC = -Iport/stm32f1
+TEST_PORT_FLAG = -DOW_PORT_TARGET_F1
+TEST_PORT_INC = -Iport/stm32f1
 TEST_EXE = $(TEST_OUT)/ds18b20_test.exe
 endif
-TEST_FLAG = -DHOST_BUILD -DDS18B20_TEST_HARNESS $(TEST_HAL_FLAG) -Wall -Wextra -Wswitch-enum \
+TEST_FLAG = -DHOST_BUILD -DDS18B20_TEST_HARNESS $(TEST_PORT_FLAG) -Wall -Wextra -Wswitch-enum \
             -Wno-unused-parameter -Wno-pointer-to-int-cast -Wno-int-to-pointer-cast \
             $(if $(COVERAGE),--coverage,)
-TEST_INC  = -Iinc $(TEST_HAL_INC) -I$(TEST_MOCK)
+TEST_INC  = -Iinc $(TEST_PORT_INC) -I$(TEST_MOCK)
 
 .PHONY: test test-f0
 test: $(TEST_EXE)

@@ -773,7 +773,7 @@ void test_state_machine_init_configures_registers(void) {
     hw_reset_all();
     ds18b20_init();
 
-#if defined(OW_HAL_TARGET_F0)
+#if defined(OW_PORT_TARGET_F0)
     TEST_ASSERT_BITS_HIGH(RCC_APB2ENR_TIM1EN, mock_rcc.APB2ENR);
     TEST_ASSERT_BITS_HIGH(RCC_AHBENR_GPIOAEN | RCC_AHBENR_DMAEN, mock_rcc.AHBENR);
     TEST_ASSERT_EQUAL_UINT32(47, mock_tim1.PSC); /* 48MHz/48 = 1MHz -> 1us */

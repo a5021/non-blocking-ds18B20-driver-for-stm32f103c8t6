@@ -69,11 +69,11 @@ A bare-metal, register-level driver for the DS18B20 temperature sensor. This dri
 │   ├── ds18b20.h           # Driver interface (high-level API) and constants
 │   ├── onewire.h           # Shared 1-Wire layer (bus primitives + Search ROM)
 │   ├── app.h               # Shared application layer (UART, clock, init)
-│   ├── ow_hal.h            # 1-Wire hardware abstraction interface (+ backend select)
+│   ├── ow_port.h           # 1-Wire port layer interface (+ backend select)
 │   └── macro.h             # STM32 register access macros (F1 backend)
-├── port/                   # Per-MCU backends for the ow_hal_* interface
+├── port/                   # Per-MCU backends for the ow_port_* interface
 │   └── stm32f1/            # STM32F1: TIM1 + DMA1 + PA8 (header-only static inline)
-│       └── ow_hal_f1.h     # Register-level ow_hal_* implementation for STM32F1
+│       └── ow_port_f1.h    # Register-level ow_port_* implementation for STM32F1
 ├── src/                    # Project source files
 │   ├── app.c               # app_init(), UART TX ring buffer, busy LED
 │   ├── demo.c              # Example: single sensor, unconditional (Skip ROM)

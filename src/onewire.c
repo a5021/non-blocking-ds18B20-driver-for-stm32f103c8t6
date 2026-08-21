@@ -1,5 +1,5 @@
 #include "onewire.h"
-#include "ow_hal.h"
+#include "ow_port.h"
 
 /**
  * @defgroup ONEWIRE_Private_Constants ONEWIRE Private Constants
@@ -47,7 +47,7 @@ static const uint8_t search_read_pulse[3] = {ONEWIRE_ONE_PULSE, ONEWIRE_ONE_PULS
 
 /** @brief Edge capture buffer used by the search engine for bus resets and
  *         plain id/cmp pair reads (the merged write+read uses search_edge3). */
-static volatile uint16_t search_pair_edge[OW_HAL_CAPTURE_BUF_SIZE];
+static volatile uint16_t search_pair_edge[OW_PORT_CAPTURE_BUF_SIZE];
 
 /** @brief Search state machine phases */
 typedef enum {
@@ -106,15 +106,15 @@ void onewire_init(void) {
     // the application starts a search.
     search_ctx.finished = 1;
     // Enable clocks, configure the timer prescaler, PA8 AF open-drain.
-    ow_hal_init();
+    ow_port_init();
 }
 
 uint8_t onewire_bus_done(void) {
-    return ow_hal_bus_done();
+    return ow_port_bus_done();
 }
 
 void onewire_reset(volatile uint16_t* edge_out) {
-    ow_hal_reset(edge_out);
+    ow_port_reset(edge_out);
 }
 
 uint8_t onewire_present(const volatile uint16_t* edge) {
@@ -127,11 +127,11 @@ uint8_t onewire_present(const volatile uint16_t* edge) {
 }
 
 void onewire_start_timer(uint16_t arr, uint8_t rcr) {
-    ow_hal_start_timer(arr, rcr);
+    ow_port_start_timer(arr, rcr);
 }
 
 void onewire_write_slots(const uint8_t* pulses, uint16_t slots) {
-    ow_hal_write_slots(pulses, slots);
+    ow_port_write_slots(pulses, slots);
 }
 
 void onewire_write_bit(uint8_t bit) {
@@ -140,7 +140,7 @@ void onewire_write_bit(uint8_t bit) {
 }
 
 void onewire_read_pair(volatile uint16_t* edge_out) {
-    ow_hal_read_pair(edge_out);
+    ow_port_read_pair(edge_out);
 }
 
 void onewire_pair_bits(const volatile uint16_t* edge, uint8_t* id_bit, uint8_t* cmp_bit) {
@@ -149,11 +149,11 @@ void onewire_pair_bits(const volatile uint16_t* edge, uint8_t* id_bit, uint8_t* 
 }
 
 void onewire_write_then_read(uint8_t bit) {
-    ow_hal_write_then_read(bit, search_edge3, search_read_pulse);
+    ow_port_write_then_read(bit, search_edge3, search_read_pulse);
 }
 
 void onewire_read_data(volatile uint8_t* dst, uint8_t bytes) {
-    ow_hal_read_data(dst, bytes);
+    ow_port_read_data(dst, bytes);
 }
 
 void onewire_decode_pulses(uint8_t* dst, const volatile uint8_t* pulse, uint8_t nbytes) {
@@ -281,7 +281,7 @@ uint8_t onewire_search_poll(void) {
     if (search_ctx.phase == ONEWIRE_SEARCH_DONE) {
         // No hardware operation is pending at the end of the search: hand the
         // timer back to the owner exactly once.
-        ow_hal_kick();
+        ow_port_kick();
         search_ctx.finished = 1;
         return 1;
     }

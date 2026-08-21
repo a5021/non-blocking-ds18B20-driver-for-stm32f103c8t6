@@ -4,7 +4,7 @@
  */
 
 #include "app.h"
-#if defined(OW_HAL_TARGET_F0)
+#if defined(OW_PORT_TARGET_F0)
 #include "stm32f0xx.h"
 #else
 #include "stm32f1xx.h"
@@ -20,7 +20,7 @@ static uint8_t uart_tx_buf[UART_TX_BUF_SIZE]; // circular buffer for UART transm
  * @note Must be called periodically to feed the UART from the ring buffer
  */
 void uart_poll_tx(void) {
-#if defined(OW_HAL_TARGET_F0)
+#if defined(OW_PORT_TARGET_F0)
     // F0 unified USART naming: TXE lives in ISR, data goes to TDR
     if ((USART1->ISR & USART_ISR_TXE) && (uart_tx_tail != uart_tx_head)) {
         // Get byte from buffer at tail position
@@ -141,7 +141,7 @@ int uart_write_hex(uint8_t b) {
  *       HSI/2+PLL x12 (F031 has no HSE), or skip for HSI 8MHz.
  */
 __STATIC_FORCEINLINE void configure_system_clock(void) {
-#if defined(OW_HAL_TARGET_F0)
+#if defined(OW_PORT_TARGET_F0)
 #ifndef HSI_8MHZ
     // PLL input is HSI/2 = 4MHz; x12 gives 48MHz. Configure the multiplier
     // before enabling the PLL so it locks on a valid clock (per RM0360).
@@ -193,7 +193,7 @@ __STATIC_FORCEINLINE void configure_system_clock(void) {
  *       via MODER/AFR, LED on PA4 (no GPIOC on F031).
  */
 __STATIC_FORCEINLINE void hardware_init(void) {
-#if defined(OW_HAL_TARGET_F0)
+#if defined(OW_PORT_TARGET_F0)
     // Enable clock for GPIOA (AHB) and USART1 (APB2)
     RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
     RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
@@ -252,7 +252,7 @@ void app_init(void) {
  *       F1: LED on PC13 (active low). F0: LED on PA4 (active low assumed).
  */
 void ds18b20_busy(unsigned action) {
-#if defined(OW_HAL_TARGET_F0)
+#if defined(OW_PORT_TARGET_F0)
     if (action) {
         // Turn LED on (PA4 low)
         GPIOA->BSRR = GPIO_BSRR_BR_4;
