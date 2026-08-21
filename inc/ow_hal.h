@@ -39,8 +39,10 @@
 /* --- Backend selection --- */
 #if defined(OW_HAL_TARGET_F1)
 #include "ow_hal_f1.h"
+#elif defined(OW_HAL_TARGET_F0)
+#include "ow_hal_f0.h"
 #else
-#error "ow_hal: no backend selected (define OW_HAL_TARGET_F1, ...)"
+#error "ow_hal: no backend selected (define OW_HAL_TARGET_F1, OW_HAL_TARGET_F0, ...)"
 #endif
 
 #endif /* OW_HAL_H */

@@ -1,10 +1,10 @@
 #include "hw_model.h"
-#include "stm32f1xx.h"
+#include "mock_target.h"
 #include <stdio.h>
 
 TIM1_TypeDef mock_tim1;
 DMA1_Channel_TypeDef mock_dma1_ch3;
-DMA1_Channel_TypeDef mock_dma1_ch6;
+DMA1_Channel_TypeDef mock_feed_ch;
 GPIO_TypeDef mock_gpioa;
 RCC_TypeDef mock_rcc;
 
@@ -39,7 +39,7 @@ static void* hw_resolve(uint32_t lo) {
 void hw_reset_all(void) {
     mock_tim1 = (TIM1_TypeDef){0};
     mock_dma1_ch3 = (DMA1_Channel_TypeDef){0};
-    mock_dma1_ch6 = (DMA1_Channel_TypeDef){0};
+    mock_feed_ch = (DMA1_Channel_TypeDef){0};
     mock_gpioa = (GPIO_TypeDef){0};
     mock_rcc = (RCC_TypeDef){0};
     tim_shadow_ccr1 = 0;
@@ -68,7 +68,7 @@ static uint8_t* d13_cur; /* channel-3 capture destination (memory write) */
 
 /* One D16 transfer: memory -> CCR1 (16-bit peripheral, 8-bit memory). */
 static void dma16_transfer(void) {
-    DMA1_Channel_TypeDef* d = &mock_dma1_ch6;
+    DMA1_Channel_TypeDef* d = &mock_feed_ch;
     if (!(d->CCR & DMA_CCR_EN) || d->CNDTR == 0) {
         return;
     }
@@ -124,7 +124,7 @@ uint8_t hw_run_until_uif(uint32_t max_slots) {
     feed_log.count = 0;
     op_capture_count = 0;
     /* Resolve the DMA buffer addresses exactly as the driver stored them. */
-    d16_cur = (uint8_t*)hw_resolve((uint32_t)mock_dma1_ch6.CMAR);
+    d16_cur = (uint8_t*)hw_resolve((uint32_t)mock_feed_ch.CMAR);
     d13_cur = (uint8_t*)hw_resolve((uint32_t)mock_dma1_ch3.CMAR);
     uint32_t slots = (uint32_t)(t->RCR & 0xFFu) + 1u;
     if (slots > max_slots) {

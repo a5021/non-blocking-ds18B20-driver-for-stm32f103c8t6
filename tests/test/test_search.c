@@ -12,7 +12,7 @@
 #include "ds18b20.h"
 #include "ds18b20_test_access.h"
 #include "hw_model.h"
-#include "stm32f1xx.h"
+#include "mock_target.h"
 #include "unity.h"
 #include <string.h>
 
@@ -255,9 +255,9 @@ void test_write_then_read_configures_registers(void) {
     TEST_ASSERT_BITS_HIGH(TIM_CR1_OPM | TIM_CR1_CEN, mock_tim1.CR1);
 
     TEST_ASSERT_EQUAL_UINT32(3, mock_dma1_ch3.CNDTR);
-    TEST_ASSERT_EQUAL_UINT32(3, mock_dma1_ch6.CNDTR);
+    TEST_ASSERT_EQUAL_UINT32(3, mock_feed_ch.CNDTR);
     TEST_ASSERT_BITS_HIGH(DMA_CCR_EN | DMA_CCR_MINC, mock_dma1_ch3.CCR);
-    TEST_ASSERT_BITS_HIGH(DMA_CCR_EN | DMA_CCR_DIR | DMA_CCR_MINC, mock_dma1_ch6.CCR);
+    TEST_ASSERT_BITS_HIGH(DMA_CCR_EN | DMA_CCR_DIR | DMA_CCR_MINC, mock_feed_ch.CCR);
 }
 
 /*-------------------------------------------------------------
