@@ -156,7 +156,7 @@ __STATIC_FORCEINLINE void configure_system_clock(void) {
     while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL)
         ;
 #endif
-    // HSI_8MHZ: MCU already runs on HSI 8MHz after reset — nothing to configure
+        // HSI_8MHZ: MCU already runs on HSI 8MHz after reset — nothing to configure
 #else
 #ifndef HSI_8MHZ
     // Enable HSI and HSE oscillators

@@ -71,8 +71,8 @@ extern DMA1_Channel_TypeDef mock_feed_ch;
 extern GPIO_TypeDef mock_gpioa;
 extern RCC_TypeDef mock_rcc;
 #define TIM1 (&mock_tim1)
-#define DMA1_Channel3 (&mock_feed_ch)   /* CC2 slot-end marker -> feeds CCR3 */
-#define DMA1_Channel4 (&mock_dma1_ch3)  /* CC4 capture -> drains CCR4 */
+#define DMA1_Channel3 (&mock_feed_ch) /* CC2 slot-end marker -> feeds CCR3 */
+#define DMA1_Channel4 (&mock_dma1_ch3) /* CC4 capture -> drains CCR4 */
 #define GPIOA (&mock_gpioa)
 #define RCC (&mock_rcc)
 
