@@ -29,6 +29,18 @@
 #define OW_HAL_TIM_PRESCALER 71u /* 72MHz / 72 = 1MHz -> 1µs/tick */
 #endif
 
+/* @brief CH2 input capture filter (IC2F), chosen to keep the filter latency
+ *       clock-independent in µs. At 72MHz fDTS/4 with N=8 samples adds
+ *       ~0.44µs; the same setting at 8MHz HSI would sample at 2MHz and add
+ *       ~4µs, pushing '1' slot captures from ~8µs to 11-12µs — past
+ *       ONEWIRE_SHORT_PULSE_MAX. On the slow clock use fCK_INT with N=4
+ *       (~0.5µs latency) so captures stay in the '1' window. */
+#if defined(HSI_8MHZ)
+#define OW_HAL_IC2F_ARGS IC2F_1 /* fCK_INT, N=4 -> ~0.5µs @8MHz */
+#else
+#define OW_HAL_IC2F_ARGS IC2F_0, IC2F_1, IC2F_2 /* fDTS/4, N=8 -> ~0.44µs @72MHz */
+#endif
+
 /* @brief DMA channel control bits for 16-bit capture: MINC | PSIZE_0 | EN */
 #define OW_HAL_DMA_CCR_CAPTURE (DMA_CCR_MINC | DMA_CCR_PSIZE_0 | DMA_CCR_EN)
 
@@ -90,7 +102,7 @@ __STATIC_FORCEINLINE uint8_t ow_hal_bus_done(void) {
  * @param[in] width DMA transfer width: 8 for 8-bit, 16 for 16-bit
  */
 __STATIC_FORCEINLINE void ow_hal_capture(volatile void* dst, uint16_t count, uint16_t width) {
-    T1.CCMR1 = TIM_CCMR1(OC1M_0, OC1M_1, OC1M_2, OC1PE, CC2S_1, IC2F_0, IC2F_1, IC2F_2);
+    T1.CCMR1 = TIM_CCMR1(OC1M_0, OC1M_1, OC1M_2, OC1PE, CC2S_1, OW_HAL_IC2F_ARGS);
     T1.CCER = TIM_CCER(CC1E, CC2E);
     T1.DIER = TIM_DIER(CC2DE);
     ow_hal_update_event();
@@ -192,7 +204,7 @@ __STATIC_FORCEINLINE void ow_hal_read_pair(volatile uint16_t* edge_out) {
     T1.RCR = 1; /* Two read slots, then a single update event */
     T1.ARR = ONEWIRE_ONE_PULSE + ONEWIRE_ZERO_PULSE + ONEWIRE_GUARD_BAND; /* Total bit slot time */
     T1.CCR1 = ONEWIRE_ONE_PULSE; /* Read pulse duration */
-    T1.CCMR1 = TIM_CCMR1(OC1M_0, OC1M_1, OC1M_2, OC1PE, CC2S_1, IC2F_0, IC2F_1, IC2F_2);
+    T1.CCMR1 = TIM_CCMR1(OC1M_0, OC1M_1, OC1M_2, OC1PE, CC2S_1, OW_HAL_IC2F_ARGS);
     T1.CCER = TIM_CCER(CC1E, CC2E);
     T1.DIER = TIM_DIER(CC2DE);
     ow_hal_update_event();
@@ -225,7 +237,7 @@ __STATIC_FORCEINLINE void ow_hal_write_then_read(uint8_t bit, volatile uint16_t*
     T1.CCR1 = write_pulse; /* Slot 1 write pulse encodes the direction bit */
     T1.CCR3 = ONEWIRE_ONE_PULSE + ONEWIRE_ZERO_PULSE; /* End-of-slot reload trigger */
     /* OC1 in PWM mode (no preload so the reload is immediate), CC2 capture armed */
-    T1.CCMR1 = TIM_CCMR1(OC1M_0, OC1M_1, OC1M_2, CC2S_1, IC2F_0, IC2F_1, IC2F_2);
+    T1.CCMR1 = TIM_CCMR1(OC1M_0, OC1M_1, OC1M_2, CC2S_1, OW_HAL_IC2F_ARGS);
     T1.CCER = TIM_CCER(CC1E, CC2E); /* Enable both channels */
     /* Disconnect DMA requests while re-arming the channels, then re-connect
      * them only after the timer flags are clean and just before starting.
